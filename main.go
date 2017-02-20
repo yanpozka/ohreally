@@ -48,7 +48,6 @@ func main() {
 		if fcExp.Name.Name == "main" {
 			return true
 		}
-		// fmt.Println(fcExp.Name.Name)
 
 		// check if current function returns something
 		r := fcExp.Type.Results
@@ -100,7 +99,8 @@ func analizeErrReturn(body *ast.BlockStmt) (*ast.IfStmt, *ast.ReturnStmt, bool) 
 		return nil, nil, false
 	}
 
-	if !processIfNode(ifSt) {
+	varName, hasOHR := processIfNode(ifSt)
+	if !hasOHR {
 		return nil, nil, false
 	}
 
@@ -112,77 +112,87 @@ func analizeErrReturn(body *ast.BlockStmt) (*ast.IfStmt, *ast.ReturnStmt, bool) 
 	if len(retSt.Results) != 1 {
 		return nil, nil, false
 	}
-	// fmt.Printf("%#v", retSt.Results[0]) // return statement
 
-	return ifSt, retSt, true
+	ident, ok := retSt.Results[0].(*ast.Ident)
+	if !ok || ident == nil {
+		return nil, nil, false
+	}
+
+	if varName == ident.Name || ident.Name == "true" || ident.Name == "false" || ident.Name == "nil" {
+		return ifSt, retSt, true
+	}
+
+	return nil, nil, false
 }
 
-func processIfNode(ifSt *ast.IfStmt) bool {
-	binCond, ok := ifSt.Cond.(*ast.BinaryExpr)
-	if !ok {
-		// fmt.Printf("%#v", ifSt.Cond)
-		// check for bool with UniaryExpr
-		_, ok = ifSt.Cond.(*ast.Ident)
-		if !ok {
-			return false
-		}
-		return true
-	}
-
-	// check == or != comparation
-	if (binCond.Op == token.EQL || binCond.Op == token.NEQ) == false {
-		return false
-	}
-
-	var compWithNil bool
+func processIfNode(ifSt *ast.IfStmt) (string, bool) {
 	var varName string
 
-	leftOp, ok := binCond.X.(*ast.Ident)
+	binCond, ok := ifSt.Cond.(*ast.BinaryExpr)
 	if !ok {
-		return false
-	}
-	if leftOp.Name == "nil" {
-		compWithNil = true
+		// check for bool with UniaryExpr
+		//
+		ident, ok := ifSt.Cond.(*ast.Ident)
+		if !ok {
+			return "", false
+		}
+		varName = ident.Name
 	} else {
-		varName = leftOp.Name
-	}
+		// check == or != comparation
+		//
+		if (binCond.Op == token.EQL || binCond.Op == token.NEQ) == false {
+			return "", false
+		}
 
-	rightOp, ok := binCond.Y.(*ast.Ident)
-	if !ok {
-		return false
-	}
-	if rightOp.Name == "nil" {
-		compWithNil = true
-	} else {
-		varName = rightOp.Name
-	}
+		var compWithNil bool
 
-	if !compWithNil {
-		return false
+		leftOp, ok := binCond.X.(*ast.Ident)
+		if !ok {
+			return "", false
+		}
+		if leftOp.Name == "nil" {
+			compWithNil = true
+		} else {
+			varName = leftOp.Name
+		}
+
+		rightOp, ok := binCond.Y.(*ast.Ident)
+		if !ok {
+			return "", false
+		}
+		if rightOp.Name == "nil" {
+			compWithNil = true
+		} else {
+			varName = rightOp.Name
+		}
+
+		if !compWithNil {
+			return "", false
+		}
 	}
 
 	ifBody := ifSt.Body
 	if ifBody == nil || len(ifBody.List) != 1 {
-		return false
+		return "", false
 	}
 
 	// check return inside of 'if'
+	//
 	retSt, ok := ifBody.List[0].(*ast.ReturnStmt)
 	if !ok {
-		return false
+		return "", false
 	}
 	if len(retSt.Results) != 1 {
-		return false
+		return "", false
 	}
 	ident, ok := retSt.Results[0].(*ast.Ident)
 	if !ok {
-		return false
+		return "", false
 	}
 
 	if varName == ident.Name || ident.Name == "true" || ident.Name == "false" {
-		// fmt.Printf("%#v", retSt.Results[0]) // return statement
-		return true
+		return varName, true
 	}
 
-	return false
+	return "", false
 }
