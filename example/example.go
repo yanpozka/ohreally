@@ -9,27 +9,48 @@ type captain struct {
 	id string
 }
 
-func doStuff(input string) (string, error) {
+func (c *captain) checkErr() error {
+
+	if err := doStuff(c.id); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func doStuff(input string) error {
 	_, err := strconv.Atoi(input)
 
 	if err != nil {
-		return "abc", err
+		return err
 	}
 
-	return "abc", nil
+	return nil
 }
 
-func isValid() (captain, bool) {
+func isValid() bool {
 	ok := strconv.IsPrint('a')
 
 	if ok {
-		return captain{id: "t"}, true
+		return true
 	}
 
-	return captain{id: "f"}, false
+	return false
 }
 
 func main() {
 	fmt.Println(doStuff("5656"))
 	fmt.Println(isValid())
+
+	c := captain{id: "abc"}
+	fmt.Println(c.checkErr())
+
+	var err error
+	fmt.Println(func() error {
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}())
 }
