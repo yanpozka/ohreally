@@ -6,3 +6,10 @@ if err != nil {
 }
 return nil
 ```
+
+### Install:
+
+```
+go get github.com/yanpozka/ohreally
+ohreally -file example/example.go
+```
