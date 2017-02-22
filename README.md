@@ -9,7 +9,7 @@ return nil
 
 ### Install and try it:
 
-```
+```bash
 go get -v -u github.com/yanpozka/ohreally
 
 cd $GOPATH github.com/yanpozka/ohreally/example
