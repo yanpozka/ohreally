@@ -7,7 +7,7 @@ if err != nil {
 return nil
 ```
 
-### Install:
+### Install and try it:
 
 ```
 go get -v -u github.com/yanpozka/ohreally
