@@ -10,6 +10,9 @@ return nil
 ### Install:
 
 ```
-go get github.com/yanpozka/ohreally
-ohreally -file example/example.go
+go get -v -u github.com/yanpozka/ohreally
+
+cd $GOPATH github.com/yanpozka/ohreally/example
+
+ohreally -file example.go
 ```
