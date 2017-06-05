@@ -6,6 +6,10 @@ if err != nil {
 }
 return nil
 ```
+that can be written as just:
+```go
+return err
+```
 
 ### Install and try it:
 
